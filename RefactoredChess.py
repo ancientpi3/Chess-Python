@@ -53,13 +53,16 @@ class GameModel:
     def __init__(self):
         initBoardData = [[8,4,6,10,12,6,4,8],[2,2,2,2,2,2,2,2],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[7,3,5,9,11,5,3,7]]
         self.boardData = numpy.array(initBoardData)
+        self.enPass = None
+        self.checked = False
+
     def getPieceAt(self,x,y):
         return self.boardData[y,x]
     def removePieceAt(self,x,y):
         self.boardData[y,x] = 0
     def placePieceAt(self,piece, x, y):
         self.boardData[y,x] = piece
-    def offerMove(self,whitesMove,x,y,X,Y,):
+    def offerMove(self,whitesMove,x,y,X,Y):
         print("x: ",x,"y: ",y, "X: ",X,"Y: ",Y)
         attacker = self.getPieceAt(x,y)
         defender = self.getPieceAt(X,Y)
@@ -71,14 +74,50 @@ class GameModel:
             return False
         if (attacker%2 == defender%2 and defender != 0):
             return False
-        #if (attacker == 1):
-            
-            
-
-        self.placePieceAt(self.getPieceAt(x,y),X,Y) 
-        self.removePieceAt(x,y)
+        # White Pawn Rules
+        if (attacker == 1):
+            if (defender == 0):
+                if (y == 3 and X == self.enPass and Y == 2 and (x == X-1 or x == X+1)):
+                    self.removePieceAt(X,Y+1)
+                    self.enPass == None
+                else:
+                    self.enPass == None
+                    if (x != X):
+                        return False
+            if (defender != 0 and (x != X+1 and x != X-1) and y != Y-1):
+                return False
+            if (y != 6 and Y != y-1):
+                return False
+            if (y == 6):
+                if (Y != 4 and Y !=5):
+                    return False
+                self.enPass = x
+        if (attacker == 2):
+            if (defender == 0):
+                if (y == 4 and X == self.enPass and Y == 5 and (x == X-1 or x == X+1)):
+                    self.removePieceAt(X,Y+1)
+                    self.enPass == None
+                else:
+                    self.enPass == None
+                    if (x != X):
+                        return False
+            if (defender != 0 and (x != X+1 and x != X-1) and y != Y+1):
+                return False
+            if (y != 1 and Y != y+1):
+                return False
+            if (y == 1):
+                if (Y != 2 and Y !=3):
+                    return False
+                self.enPass = x
+          
         return True
-
+    def tryMove(self,whitesMove,x,y,X,Y):
+        if(self.offerMove(whitesMove,x,y,X,Y)):
+            self.placePieceAt(self.getPieceAt(x,y),X,Y) 
+            self.removePieceAt(x,y)
+            return True
+        else:
+            return False
 
 class GameController:
     def __init__(self):
@@ -102,7 +141,7 @@ class GameController:
         positionY = int(event.y/self.GV.Tsize)
         if (self.whitesMove):
             if (self.selected):
-                if (self.GM.offerMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
+                if (self.GM.tryMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
                     self.GV.updateScreen()
                     time.sleep(1)
                     self.whitesMove = False
@@ -114,7 +153,7 @@ class GameController:
                 self.selectedY = positionY
         else:
            if (self.selected):
-                if (self.GM.offerMove(self.whitesMove,7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
+                if (self.GM.tryMove(self.whitesMove,7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
                     self.GV.updateScreen()
                     time.sleep(1)
                     self.whitesMove = True
