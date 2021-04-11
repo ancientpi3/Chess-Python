@@ -14,7 +14,7 @@ def key(event):
     print ("pressed", repr(event.char))
 
 def callback(event):
-    print ("clicked at", event.x, event.y)
+    print ("clicked at",5%2, event.x, event.y)
 
 #canvas= Canvas(root, width=100, height=100)
 canvas.bind("<Key>", key)

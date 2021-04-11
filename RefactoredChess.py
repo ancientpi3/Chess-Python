@@ -17,6 +17,7 @@ class GameView:
         self.win = Canvas(self.view, width = self.winW, height = self.winH)
         self.win.pack()
         self.imageList = [PhotoImage(file="C:\\Users\\Ethan\\Source\Repos\\Chess-Python\\Graphics\\" + i) for i in self.fileList]
+        
         self.boardImage = PhotoImage(file="C:\\Users\\Ethan\\Source\Repos\\Chess-Python\\Graphics\\" + "ChessBoard.png")
         
     def placePiece(self,piece, x, y):
@@ -58,7 +59,22 @@ class GameModel:
         self.boardData[y,x] = 0
     def placePieceAt(self,piece, x, y):
         self.boardData[y,x] = piece
-    def offerMove(self,x,y,X,Y):
+    def offerMove(self,whitesMove,x,y,X,Y,):
+        print("x: ",x,"y: ",y, "X: ",X,"Y: ",Y)
+        attacker = self.getPieceAt(x,y)
+        defender = self.getPieceAt(X,Y)
+        
+        #The Rules begin here, either a rule is violated and returns false, or move is made and returns true.
+        if (whitesMove != attacker%2):
+            return False
+        if (attacker == 0):
+            return False
+        if (attacker%2 == defender%2 and defender != 0):
+            return False
+        #if (attacker == 1):
+            
+            
+
         self.placePieceAt(self.getPieceAt(x,y),X,Y) 
         self.removePieceAt(x,y)
         return True
@@ -66,6 +82,7 @@ class GameModel:
 
 class GameController:
     def __init__(self):
+        self.playGame = True
         self.whitesMove = True
         self.selected = False
         self.selectedX = 0
@@ -76,7 +93,8 @@ class GameController:
         self.GV.win.bind("<Button-1>", self.onClick)
         self.GV.win.pack()
         self.GV.updateScreen()
-        self.GV.view.mainloop()
+        while(self.playGame):
+            self.GV.view.update()
         
     def onClick(self,event):
         
@@ -84,7 +102,7 @@ class GameController:
         positionY = int(event.y/self.GV.Tsize)
         if (self.whitesMove):
             if (self.selected):
-                if (self.GM.offerMove(self.selectedX,self.selectedY,positionX,positionY)):
+                if (self.GM.offerMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
                     self.GV.updateScreen()
                     time.sleep(1)
                     self.whitesMove = False
@@ -96,7 +114,7 @@ class GameController:
                 self.selectedY = positionY
         else:
            if (self.selected):
-                if (self.GM.offerMove(7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
+                if (self.GM.offerMove(self.whitesMove,7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
                     self.GV.updateScreen()
                     time.sleep(1)
                     self.whitesMove = True
