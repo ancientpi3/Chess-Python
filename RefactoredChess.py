@@ -1,4 +1,4 @@
-#from graphics import *
+
 from tkinter import *
 import time
 import numpy
@@ -46,9 +46,6 @@ class GameView:
     def placeSpecialTiles(self):
         if (self.controller.selected):
             self.placePiece(13,(self.controller.selectedX+1)*self.Tsize,(self.controller.selectedY+1)*self.Tsize)
-
-
-
 class GameModel:
     def __init__(self):
         initBoardData = [[8,4,6,10,12,6,4,8],[2,2,2,2,2,2,2,2],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[7,3,5,9,11,5,3,7]]
@@ -74,7 +71,8 @@ class GameModel:
             return False
         if (attacker%2 == defender%2 and defender != 0):
             return False
-        # White Pawn Rules
+        
+        #Movement Rules
         if (attacker == 1):
             if (defender == 0):
                 if (y == 3 and X == self.enPass and Y == 2 and (x == X-1 or x == X+1)):
@@ -109,7 +107,21 @@ class GameModel:
                 if (Y != 2 and Y !=3):
                     return False
                 self.enPass = x
-          
+        if (attacker == 3 or attacker == 4):
+            if ([x,y] != [X+1,Y+2] and [x,y] != [X+1,Y-2] and [x,y] != [X-1,Y+2] and [x,y] != [X-1,Y-2] and [x,y] != [X+2,Y+1] and [x,y] != [X+2,Y-1] and [x,y] != [X-2,Y+1] and [x,y] != [X-2,Y-1]):
+                return False
+        if (attacker == 5 or attacker == 6):
+            if (abs(x - X) != abs(y - Y)):
+                return False
+        if (attacker == 7 or attacker == 8):
+            if (x != X and y != Y):
+                return False
+        if (attacker == 9 or attacker == 10):
+            if ((x != X and y != Y) and (abs(x - X) != abs(y - Y))):
+                return False
+        if (attacker == 11 or attacker == 12):
+            if (abs(x - X) > 1 or abs(y-Y) > 1):
+                return False
         return True
     def tryMove(self,whitesMove,x,y,X,Y):
         if(self.offerMove(whitesMove,x,y,X,Y)):
@@ -118,7 +130,6 @@ class GameModel:
             return True
         else:
             return False
-
 class GameController:
     def __init__(self):
         self.playGame = True
@@ -163,16 +174,5 @@ class GameController:
                 self.selectedX = positionX
                 self.selectedY = positionY
         self.GV.updateScreen()
-        
-
-        
-        
-
-
-
 GC = GameController()
 
-#GM.removePieceAt(0,0)
-#GM.placePieceAt(3,1,0)
-#GV.updateScreen()
-#time.sleep(2)
