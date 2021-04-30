@@ -21,4 +21,18 @@ canvas.bind("<Key>", key)
 canvas.bind("<Button-1>", callback)
 canvas.pack()
 
-root.mainloop()
+#root.mainloop
+def series1():
+    sum = 0
+    for n in range(1,100000):
+        sum = sum+(1/n)
+    return sum
+def series2():
+    sum = 0
+    for n in range(1,100000):
+        sum = sum+((1/n)*(-1)**n)
+    return sum
+
+for i in range(1,2):
+    print("yuk")
+
