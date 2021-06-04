@@ -143,11 +143,10 @@ class GameModel:
             if (defender == 0):
                 if (y == 3 and X == self.enPass and Y == 2 and (x == X-1 or x == X+1)):
                     self.removePieceAt(X,Y+1)
-                    self.enPass == None
                 else:
-                    self.enPass == None
                     if (x != X):
                         return False
+            self.enPass = None
             if (defender != 0 and (x != X+1 and x != X-1) and y != Y-1):
                 return False
             if (y != 6 and Y != y-1):
@@ -161,12 +160,11 @@ class GameModel:
         if (attacker == 2):
             if (defender == 0):
                 if (y == 4 and X == self.enPass and Y == 5 and (x == X-1 or x == X+1)):
-                    self.removePieceAt(X,Y+1)
-                    self.enPass == None
+                    self.removePieceAt(X,Y-1)
                 else:
-                    self.enPass == None
                     if (x != X):
                         return False
+            self.enPass = None
             if (defender != 0 and (x != X+1 and x != X-1) and y != Y+1):
                 return False
             if (y != 1 and Y != y+1):
@@ -177,6 +175,8 @@ class GameModel:
                 self.enPass = x
             if (Y == 7):
                 self.needsPromotionAt = X
+        if (attacker != 1 and attacker != 2):
+            self.enPass = None
         if (attacker == 3 or attacker == 4):
             if ([x,y] != [X+1,Y+2] and [x,y] != [X+1,Y-2] and [x,y] != [X-1,Y+2] and [x,y] != [X-1,Y-2] and [x,y] != [X+2,Y+1] and [x,y] != [X+2,Y-1] and [x,y] != [X-2,Y+1] and [x,y] != [X-2,Y-1]):
                 return False
@@ -218,11 +218,7 @@ class GameController:
         self.GV.updateScreen()
         while(self.playGame):
             self.GV.view.update()
-        
-    def onClick(self,event):
-        
-        positionX = int(event.x/self.GV.Tsize)
-        positionY = int(event.y/self.GV.Tsize)
+    def regularTurn(self, positionX, positionY):
         if (self.whitesMove):
             if (self.selected):
                 if (self.GM.tryMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
@@ -252,6 +248,12 @@ class GameController:
                 self.selectedX = positionX
                 self.selectedY = positionY
 
+    def onClick(self,event):
+        print("at start: ", self.GM.enPass)
+        positionX = int(event.x/self.GV.Tsize)
+        positionY = int(event.y/self.GV.Tsize)
+        self.regularTurn(positionX,positionY)
         self.GV.updateScreen()
+        print("at end: ", self.GM.enPass)
 GC = GameController()
 
