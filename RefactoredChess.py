@@ -105,6 +105,8 @@ class GameModel:
         self.needsPromotionAt = None
 
     def getPieceAt(self,x,y):
+        if (x < 0 or x > 7 or y < 0 or y > 7):
+            return 0
         return self.boardData[y,x]
     def removePieceAt(self,x,y):
         self.boardData[y,x] = 0
@@ -121,9 +123,39 @@ class GameModel:
             pathLength = abs(Y-y)
 
         for i in range(1,pathLength):
-            if (self.getPieceAt(x + i*xStep,y + i*yStep) != 0):
-                return self.getPieceAt(x + i*xStep,y + i*yStep)
+            if (x+i*xStep < 0 or x+i*xStep > 7 or y+i*yStep < 0 or y+i*yStep > 7):
+                
+                return 0
+            thispiece = self.getPieceAt(x + i*xStep,y + i*yStep)
+            if (thispiece != 0):
+                
+                return thispiece
         return 0
+    def findPiece(self,piece):
+        for i in range(8):
+            for j in range(8):
+                if self.boardData[i,j] == piece:
+                    return [i,j]
+    def isPieceAttacked(self,X,Y):
+        #kingCoords = findPiece(12)
+        #X = kingCoords[0]
+        #Y = kingCoords[1]
+        piece = getPieceAt(X,Y)
+
+        whiteAttackers = []
+        blackAttackers = []
+
+        straightChecks = [blockRule(X,Y,X,8),blockRule(X,Y,X,-1),blockRule(X,Y,8,Y),blockRule(X,Y,-1,Y)]
+        diagonalChecks = [blockRule(X,Y,X+8,Y+8),blockRule(X,Y,X+8,Y-8),blockRule(X,Y,X-8,Y+8),blockRule(X,Y,X-8,Y-8)]
+        knightChecks = [getPieceAt(X+1,Y+2),getPieceAt(X-1,Y+2),getPieceAt(X+1,Y-2),getPieceAt(X-1,Y-2),getpieceAt(X+2,Y+1),getpieceAt(X-2,Y+1),getpieceAt(X+2,Y-1),getpieceAt(X-2,Y-1)]
+        whitePawnChecks = [getPieceAt(X-1,Y+1),getPieceAt(X+1,Y+1)]
+        blackPawnChecks = [getPieceAt(X-1,Y-1),getPieceAt(X+1,Y-1)]
+        for check in straightChecks:
+            if (check == 9 or  check == 7):
+                print()
+
+        
+    
 
     def offerMove(self,whitesMove,x,y,X,Y):
         print("x: ",x,"y: ",y, "X: ",X,"Y: ",Y)
