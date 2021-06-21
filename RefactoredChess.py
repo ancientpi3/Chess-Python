@@ -152,9 +152,12 @@ class GameModel:
                         ,[self.getPieceAt(X+1,Y-2),X+1,Y-2],[self.getPieceAt(X-1,Y-2),X-1,Y-2]
                         ,[self.getPieceAt(X+2,Y+1),X+2,Y+1],[self.getPieceAt(X-2,Y+1),X-2,Y+1]
                         ,[self.getPieceAt(X+2,Y-1),X+2,Y-1],[self.getPieceAt(X-2,Y-1),X-2,Y-1]]
+        kingChecks = [[self.getPieceAt(X+1,Y+1),X+1,Y+1],[self.getPieceAt(X+1,Y),X+1,Y]
+                        ,[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X-1,Y),X-1,Y]
+                        ,[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X,Y-1),X,Y-1]
+                        ,[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X,Y+1),X,Y+1]]
         whitePawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1]]
         blackPawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1]]
-        
         for check in straightChecks:
             print(type(check))
             if (check[0] == 9 or  check[0] == 7) and attackerIsWhite:
@@ -170,6 +173,11 @@ class GameModel:
             if (check[0] == 3) and attackerIsWhite:
                 attackers.append(check)
             if (check[0] == 4)  and not attackerIsWhite:
+                attackers.append(check)
+        for check in kingChecks:
+            if (check[0] == 11) and attackerIsWhite:
+                attackers.append(check)
+            if (check[0] == 12)  and not attackerIsWhite:
                 attackers.append(check)
         if(not attackerIsWhite):
             for check in whitePawnChecks:
@@ -316,7 +324,7 @@ class TestGameModel(unittest.TestCase):
     
     def test_unitTest(self):
         self.GM = GameModel()
-        print(self.GM.squareAttackers(1,0,False))
+        print(self.GM.squareAttackers(3,1,False))
 
 unittest.main()
 GC = GameController()
