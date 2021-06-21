@@ -3,6 +3,7 @@ from tkinter import *
 import tkinter
 import time
 import numpy
+import unittest
 
 
 class GameView:
@@ -123,38 +124,62 @@ class GameModel:
             pathLength = abs(Y-y)
 
         for i in range(1,pathLength):
-            if (x+i*xStep < 0 or x+i*xStep > 7 or y+i*yStep < 0 or y+i*yStep > 7):
-                
-                return 0
-            thispiece = self.getPieceAt(x + i*xStep,y + i*yStep)
+            xShift = x+i*xStep
+            yShift = y+i*yStep
+
+            if (xShift < 0 or xShift > 7 or yShift < 0 or yShift > 7):
+                return [0,None,None]
+            thispiece = self.getPieceAt(xShift,yShift)
             if (thispiece != 0):
-                
-                return thispiece
-        return 0
+                return [thispiece,xShift,yShift]
+        return [0,None,None]
     def findPiece(self,piece):
         for i in range(8):
             for j in range(8):
                 if self.boardData[i,j] == piece:
                     return [i,j]
-    def isPieceAttacked(self,X,Y):
+    def squareAttackers(self,X,Y,attackerIsWhite):
         #kingCoords = findPiece(12)
         #X = kingCoords[0]
         #Y = kingCoords[1]
-        piece = getPieceAt(X,Y)
+        piece = self.getPieceAt(X,Y)
 
-        whiteAttackers = []
-        blackAttackers = []
+        attackers = []
 
-        straightChecks = [blockRule(X,Y,X,8),blockRule(X,Y,X,-1),blockRule(X,Y,8,Y),blockRule(X,Y,-1,Y)]
-        diagonalChecks = [blockRule(X,Y,X+8,Y+8),blockRule(X,Y,X+8,Y-8),blockRule(X,Y,X-8,Y+8),blockRule(X,Y,X-8,Y-8)]
-        knightChecks = [getPieceAt(X+1,Y+2),getPieceAt(X-1,Y+2),getPieceAt(X+1,Y-2),getPieceAt(X-1,Y-2),getpieceAt(X+2,Y+1),getpieceAt(X-2,Y+1),getpieceAt(X+2,Y-1),getpieceAt(X-2,Y-1)]
-        whitePawnChecks = [getPieceAt(X-1,Y+1),getPieceAt(X+1,Y+1)]
-        blackPawnChecks = [getPieceAt(X-1,Y-1),getPieceAt(X+1,Y-1)]
-        for check in straightChecks:
-            if (check == 9 or  check == 7):
-                print()
-
+        straightChecks = [self.blockRule(X,Y,X,8),self.blockRule(X,Y,X,-1),self.blockRule(X,Y,8,Y),self.blockRule(X,Y,-1,Y)]
+        diagonalChecks = [self.blockRule(X,Y,X+8,Y+8),self.blockRule(X,Y,X+8,Y-8),self.blockRule(X,Y,X-8,Y+8),self.blockRule(X,Y,X-8,Y-8)]
+        knightChecks = [[self.getPieceAt(X+1,Y+2),X+1,Y+2],[self.getPieceAt(X-1,Y+2),X-1,Y+2]
+                        ,[self.getPieceAt(X+1,Y-2),X+1,Y-2],[self.getPieceAt(X-1,Y-2),X-1,Y-2]
+                        ,[self.getPieceAt(X+2,Y+1),X+2,Y+1],[self.getPieceAt(X-2,Y+1),X-2,Y+1]
+                        ,[self.getPieceAt(X+2,Y-1),X+2,Y-1],[self.getPieceAt(X-2,Y-1),X-2,Y-1]]
+        whitePawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1]]
+        blackPawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1]]
         
+        for check in straightChecks:
+            print(type(check))
+            if (check[0] == 9 or  check[0] == 7) and attackerIsWhite:
+                attackers.append(check)
+            if (check[0] == 10 or  check[0] == 8) and not attackerIsWhite:
+                attackers.append(check)
+        for check in diagonalChecks:
+            if (check[0] == 9 or  check[0] == 5) and attackerIsWhite:
+                attackers.append(check)
+            if (check[0] == 10 or  check[0] == 6) and not attackerIsWhite:
+                attackers.append(check)
+        for check in knightChecks:
+            if (check[0] == 3) and attackerIsWhite:
+                attackers.append(check)
+            if (check[0] == 4)  and not attackerIsWhite:
+                attackers.append(check)
+        if(not attackerIsWhite):
+            for check in whitePawnChecks:
+                if (check[0] == 1):
+                    attackers.append(check)
+        if(attackerIsWhite):
+            for check in whitePawnChecks:
+                if (check[0] == 2):
+                    attackers.append(check)
+        return attackers
     
 
     def offerMove(self,whitesMove,x,y,X,Y):
@@ -213,7 +238,7 @@ class GameModel:
             if ([x,y] != [X+1,Y+2] and [x,y] != [X+1,Y-2] and [x,y] != [X-1,Y+2] and [x,y] != [X-1,Y-2] and [x,y] != [X+2,Y+1] and [x,y] != [X+2,Y-1] and [x,y] != [X-2,Y+1] and [x,y] != [X-2,Y-1]):
                 return False
         else:
-            if (self.blockRule(x,y,X,Y)) != 0:
+            if (self.blockRule(x,y,X,Y)[0]) != 0:
                 return False
         if (attacker == 5 or attacker == 6):
             if (abs(x - X) != abs(y - Y)):
@@ -287,5 +312,13 @@ class GameController:
         self.regularTurn(positionX,positionY)
         self.GV.updateScreen()
         print("at end: ", self.GM.enPass)
+class TestGameModel(unittest.TestCase):
+    
+    def test_unitTest(self):
+        self.GM = GameModel()
+        print(self.GM.squareAttackers(1,0,False))
+
+unittest.main()
 GC = GameController()
+
 
