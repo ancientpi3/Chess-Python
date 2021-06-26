@@ -8,7 +8,7 @@ import unittest
 
 class GameView:
     def __init__(self,model,controller):
-        self.fileList = ["Pawn_W.png","Pawn_B.png","Knight_W.png","Knight_B.png","Bishop_W.png","Bishop_B.png","Rook_W.png","Rook_B.png","Queen_W.png","Queen_B.png","King_W.png","King_B.png","tile_khaki.png","tile_pink.png"]
+        self.fileList = ["Pawn_W.png","Pawn_B.png","Knight_W.png","Knight_B.png","Bishop_W.png","Bishop_B.png","Rook_W.png","Rook_B.png","Queen_W.png","Queen_B.png","King_W.png","King_B.png","tile_khaki.png","tile_pink.png","SideMod.png","backbutt.png","playbutt.png","editbutt.png","exitbutt.png"]
         self.view = Tk()
         self.Tsize = 50
         self.winW = self.Tsize*8
@@ -16,7 +16,7 @@ class GameView:
         self.modW = self.Tsize*2
         self.model = model
         self.controller = controller
-        self.win = Canvas(self.view, width = self.winW, height = self.winH)
+        self.win = Canvas(self.view, width = self.winW+100, height = self.winH)
         self.win.pack()
         self.imageList = [PhotoImage(file="C:\\Users\\Ethan\\Source\Repos\\Chess-Python\\Graphics\\" + i) for i in self.fileList]
         
@@ -25,12 +25,44 @@ class GameView:
     def placePiece(self,piece, x, y):
         if (piece>0):
             self.win.create_image(x-25,y-25,image = self.imageList[piece-1])
+    def buttonOutline(self,buttonSelected):
+        self.win.create_rectangle(9*self.Tsize-50,(buttonSelected-1)*50,9*self.Tsize+50,buttonSelected*50)
+        self.win.update()
+        time.sleep(.2)
+    
+    def updateSideBar(self):
+        self.placePiece(15,9*self.Tsize+25,4*self.Tsize+25)
+        if (self.controller.gameMode == 'menu'):
+            self.placePiece(17,9*self.Tsize+25,self.Tsize)
+            self.placePiece(18,9*self.Tsize+25,2*self.Tsize)
+            self.placePiece(19,9*self.Tsize+25,8*self.Tsize)
+            #self.win.create_rectangle(9*self.Tsize-50,50,9*self.Tsize+50,100)
+
+        if (self.controller.gameMode == 'play'):
+            self.placePiece(16,9*self.Tsize+25,8*self.Tsize)
+        if (self.controller.gameMode == 'edit'):
+            self.placePiece(17,9*self.Tsize+25,self.Tsize)
+            self.placePiece(16,9*self.Tsize+25,8*self.Tsize)
+            for x in range(2):
+                for y in range(6):
+                    #print(self.controller.selectedX, "must equal ", x+8)
+                    #print(self.controller.selectedY, "must equal ", y+1)
+                    if(x+8 == self.controller.selectedX and y+1 == self.controller.selectedY):
+                        print("bruh2")
+                        self.placePiece(13,(x+9)*self.Tsize,(y+2)*self.Tsize)
+                    self.placePiece(self.controller.editPieces[x][y],(x+9)*self.Tsize,(y+2)*self.Tsize)
+                    
+            
+
+            
         
     
     def updateScreen(self): 
         self.win.delete('all')
         self.win.create_image(self.winW/2,self.winH/2, image = self.boardImage)
         self.placeSpecialTiles()
+
+        self.updateSideBar()
 
         if (self.controller.whitesMove):
             
@@ -42,9 +74,10 @@ class GameView:
             
             for x in range(8):
                 for y in range(8):
-                    
                     self.placePiece(self.model.getPieceAt(7-x,7-y),((x+1))*self.Tsize,((y+1))*self.Tsize)
             self.win.update()
+        
+        
     def placeSpecialTiles(self):
         if (self.controller.selected):
             self.placePiece(13,(self.controller.selectedX+1)*self.Tsize,(self.controller.selectedY+1)*self.Tsize)
@@ -92,12 +125,15 @@ class GameView:
         return self.promotePiece
 class GameModel:
     def __init__(self):
-        initBoardData = [[8,4,6,10,12,6,4,8],[2,2,2,2,2,2,2,2],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[7,3,5,9,11,5,3,7]]
-        self.boardData = numpy.array(initBoardData)
+        self.initBoardData = numpy.array([[8,4,6,10,12,6,4,8],[2,2,2,2,2,2,2,2],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1],[7,3,5,9,11,5,3,7]])
+        self.emptyBoard = numpy.array([[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]])
+        self.boardData = self.emptyBoard
         self.enPass = None
         self.checked = False
         self.needsPromotionAt = None 
 
+    def setUpBoard(self,board):
+        self.boardData = board
     def doPromotionAt(self,whitesMove,piece):
         if (whitesMove):
             self.placePieceAt(piece,self.needsPromotionAt,0)
@@ -159,7 +195,6 @@ class GameModel:
         whitePawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1]]
         blackPawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1]]
         for check in straightChecks:
-            print(type(check))
             if (check[0] == 9 or  check[0] == 7) and attackerIsWhite:
                 attackers.append(check)
             if (check[0] == 10 or  check[0] == 8) and not attackerIsWhite:
@@ -271,10 +306,13 @@ class GameModel:
 class GameController:
     def __init__(self):
         self.playGame = True
+        self.gameMode = 'menu'
         self.whitesMove = True
         self.selected = False
         self.selectedX = 0
         self.selectedY = 0
+        self.editPieces = [[1,3,5,7,9,11],[2,4,6,8,10,12]]
+        self.editWithPiece = 0
 
         self.GM = GameModel()
         self.GV = GameView(self.GM,self)
@@ -284,49 +322,102 @@ class GameController:
         while(self.playGame):
             self.GV.view.update()
     def regularTurn(self, positionX, positionY):
-        if (self.whitesMove):
-            if (self.selected):
-                if (self.GM.tryMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
-                    print(self.GM.needsPromotionAt)
-                    if(self.GM.needsPromotionAt != None):
-                        self.GM.doPromotionAt(True, self.GV.promotePrompt())
-                    self.GV.updateScreen()
-                    time.sleep(1)
-                    self.whitesMove = False
-                self.selected = False
-                
-            else:
-                self.selected = True
-                self.selectedX = positionX
-                self.selectedY = positionY
+        
+        if (positionX > 7):
+            if (positionY == 7):
+                self.GV.buttonOutline(8)
+                self.gameMode = 'menu'
+
         else:
-           if (self.selected):
-                if (self.GM.tryMove(self.whitesMove,7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
-                    if(self.GM.needsPromotionAt != None):
-                        self.GM.doPromotionAt(False, self.GV.promotePrompt())                    
-                    self.GV.updateScreen()
-                    time.sleep(1)
-                    self.whitesMove = True
-                self.selected = False
-           else:
-                self.selected = True
-                self.selectedX = positionX
-                self.selectedY = positionY
+            if (self.whitesMove):
+                if (self.selected):
+                    if (self.GM.tryMove(self.whitesMove,self.selectedX,self.selectedY,positionX,positionY)):
+                        print(self.GM.needsPromotionAt)
+                        if(self.GM.needsPromotionAt != None):
+                            self.GM.doPromotionAt(True, self.GV.promotePrompt())
+                        self.GV.updateScreen()
+                        time.sleep(1)
+                        self.whitesMove = False
+                    self.selected = False
+                
+                else:
+                    self.selected = True
+                    self.selectedX = positionX
+                    self.selectedY = positionY
+            else:
+               if (self.selected):
+                    if (self.GM.tryMove(self.whitesMove,7-self.selectedX,7-self.selectedY,7-positionX,7-positionY)):
+                        if(self.GM.needsPromotionAt != None):
+                            self.GM.doPromotionAt(False, self.GV.promotePrompt())                    
+                        self.GV.updateScreen()
+                        time.sleep(1)
+                        self.whitesMove = True
+                    self.selected = False
+               else:
+                    self.selected = True
+                    self.selectedX = positionX
+                    self.selectedY = positionY
+
+    def menuSelection(self,positionX,positionY):
+        if (positionX > 7):
+            if (positionY == 7):
+                self.GV.buttonOutline(8)
+                self.playGame = False
+            if (positionY == 1):
+                self.GV.buttonOutline(2)
+                self.gameMode = 'edit'
+            if (positionY == 0):
+                self.GV.buttonOutline(1)
+                self.GM.setUpBoard(self.GM.initBoardData)
+                self.gameMode = 'play'
+    def editSelection(self,positionX,positionY):
+        if(positionX>7):
+            if (positionY > 0 and positionY <7):
+                if (self.selected and (self.selectedX == positionX and self.selectedY == positionY)):
+                    self.selected = False
+                    self.selectedX = 0
+                    self.selectedY = 0
+                    self.editWithPiece = 0
+                else:
+                    self.selected = True
+                    self.selectedX = positionX
+                    self.selectedY = positionY
+                    self.editWithPiece = self.editPieces[positionX-8][positionY-1]
+            if (positionY == 0):
+                self.GV.buttonOutline(1)
+                self.gameMode = 'play'
+            if (positionY == 7):
+                self.GV.buttonOutline(8)
+                self.gameMode = 'menu'
+
+        else:
+            self.GM.placePieceAt(self.editWithPiece,positionX,positionY)
+
+
 
     def onClick(self,event):
-        print("at start: ", self.GM.enPass)
+        #print("at start: ", self.GM.enPass)
         positionX = int(event.x/self.GV.Tsize)
         positionY = int(event.y/self.GV.Tsize)
-        self.regularTurn(positionX,positionY)
-        self.GV.updateScreen()
-        print("at end: ", self.GM.enPass)
+        
+        if (self.gameMode == 'play'):
+            self.regularTurn(positionX,positionY)
+            self.GV.updateScreen()
+        elif (self.gameMode == 'menu'):
+            self.menuSelection(positionX,positionY)
+            self.GV.updateScreen()
+        elif (self.gameMode == 'edit'):
+            self.editSelection(positionX,positionY)
+            self.GV.updateScreen()
+
+        #print("at end: ", self.GM.enPass)
 class TestGameModel(unittest.TestCase):
     
     def test_unitTest(self):
         self.GM = GameModel()
         print(self.GM.squareAttackers(3,1,False))
 
-unittest.main()
+#unittest.main()
 GC = GameController()
 
 
