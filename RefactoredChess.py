@@ -79,8 +79,23 @@ class GameView:
         
         
     def placeSpecialTiles(self):
+        blackKing = self.model.findPiece(12)
+        whiteKing = self.model.findPiece(11)
+        #print(self.model.whiteKingChecked(), " ", len(self.model.whiteKingChecked()))
         if (self.controller.selected):
             self.placePiece(13,(self.controller.selectedX+1)*self.Tsize,(self.controller.selectedY+1)*self.Tsize)
+        if(len(self.model.blackKingChecked()) > 0):
+            print("oh")
+            if(self.controller.whitesMove):
+                self.placePiece(14,(blackKing[0]+1)*self.Tsize,(blackKing[1]+1)*self.Tsize)
+            else:
+                self.placePiece(14,(7-blackKing[0]+1)*self.Tsize,(7-blackKing[1]+1)*self.Tsize)
+        if(len(self.model.whiteKingChecked()) > 0):
+            print(whiteKing[0], " ", whiteKing[1])
+            if(self.controller.whitesMove):
+                self.placePiece(14,(whiteKing[0]+1)*self.Tsize,(whiteKing[1]+1)*self.Tsize)
+            else:
+                self.placePiece(14,(7-whiteKing[0]+1)*self.Tsize,(7-whiteKing[1]+1)*self.Tsize)
     def promotePrompt(self):
         button = tkinter.Tk()
 
@@ -173,7 +188,21 @@ class GameModel:
         for i in range(8):
             for j in range(8):
                 if self.boardData[i,j] == piece:
-                    return [i,j]
+                    return [j,i]
+        return [0,0]
+
+    def blackKingChecked(self):
+        kingPos = self.findPiece(12)
+        print(kingPos)
+        print("blackKing: ",self.squareAttackers(4,0,True))
+        return self.squareAttackers(4,0,True)
+    def whiteKingChecked(self):
+        kingPos = self.findPiece(11)
+        print(kingPos)
+        print("whiteKing: ",self.squareAttackers(4,7,False))
+        return self.squareAttackers(4,7,False)
+
+
     def squareAttackers(self,X,Y,attackerIsWhite):
         #kingCoords = findPiece(12)
         #X = kingCoords[0]
@@ -214,11 +243,11 @@ class GameModel:
                 attackers.append(check)
             if (check[0] == 12)  and not attackerIsWhite:
                 attackers.append(check)
-        if(not attackerIsWhite):
+        if(attackerIsWhite):
             for check in whitePawnChecks:
                 if (check[0] == 1):
                     attackers.append(check)
-        if(attackerIsWhite):
+        if(not attackerIsWhite):
             for check in whitePawnChecks:
                 if (check[0] == 2):
                     attackers.append(check)
