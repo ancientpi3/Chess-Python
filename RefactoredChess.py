@@ -221,8 +221,8 @@ class GameModel:
                         ,[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X-1,Y),X-1,Y]
                         ,[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X,Y-1),X,Y-1]
                         ,[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X,Y+1),X,Y+1]]
-        whitePawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1]]
-        blackPawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1]]
+        blackPawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1],[self.getPieceAt(X,Y+1),X,Y+1],[self.getPieceAt(X,Y+2),X,Y+2]]
+        whitePawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X,Y-1),X,Y-1],[self.getPieceAt(X,Y-2),X,Y-2]]
         for check in straightChecks:
             if (check[0] == 9 or  check[0] == 7) and attackerIsWhite:
                 attackers.append(check)
@@ -244,13 +244,29 @@ class GameModel:
             if (check[0] == 12)  and not attackerIsWhite:
                 attackers.append(check)
         if(attackerIsWhite):
-            for check in whitePawnChecks:
-                if (check[0] == 1):
-                    attackers.append(check)
+            if (piece == 0):
+                if (whitePawnChecks[2][0] != 0):
+                    if (whitePawnChecks[2][0] == 1):
+                        attackers.append(whitePawnChecks[2])
+                elif (blackPawnChecks[3][0]==1 and Y == 4):
+                    attackers.append(whitePawnChecks[2])
+            else:
+                if (blackPawnChecks[0][0] == 1):
+                    attackers.append(whitePawnChecks[0])
+                if (blackPawnChecks[1][0] == 1):
+                    attackers.append(whitePawnChecks[1])
         if(not attackerIsWhite):
-            for check in whitePawnChecks:
-                if (check[0] == 2):
-                    attackers.append(check)
+            if (piece == 0):
+                if (blackPawnChecks[2][0] != 0):
+                    if (blackPawnChecks[2][0] == 2):
+                        attackers.append(blackPawnChecks[2])
+                elif (blackPawnChecks[3][0]==2 and Y == 3):
+                    attackers.append(blackPawnChecks[2])
+            else:
+                if (blackPawnChecks[0][0] == 2):
+                    attackers.append(blackPawnChecks[0])
+                if (blackPawnChecks[1][0] == 2):
+                    attackers.append(blackPawnChecks[1])
         return attackers
     
 
