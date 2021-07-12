@@ -81,16 +81,16 @@ class GameView:
     def placeSpecialTiles(self):
         blackKing = self.model.findPiece(12)
         whiteKing = self.model.findPiece(11)
-        #print(self.model.whiteKingChecked(), " ", len(self.model.whiteKingChecked()))
+        #print(self.model.whiteKingChecks(), " ", len(self.model.whiteKingChecks()))
         if (self.controller.selected):
             self.placePiece(13,(self.controller.selectedX+1)*self.Tsize,(self.controller.selectedY+1)*self.Tsize)
-        if(len(self.model.blackKingChecked()) > 0):
+        if(len(self.model.blackKingChecks()) > 0):
             print("oh")
             if(self.controller.whitesMove):
                 self.placePiece(14,(blackKing[0]+1)*self.Tsize,(blackKing[1]+1)*self.Tsize)
             else:
                 self.placePiece(14,(7-blackKing[0]+1)*self.Tsize,(7-blackKing[1]+1)*self.Tsize)
-        if(len(self.model.whiteKingChecked()) > 0):
+        if(len(self.model.whiteKingChecks()) > 0):
             print(whiteKing[0], " ", whiteKing[1])
             if(self.controller.whitesMove):
                 self.placePiece(14,(whiteKing[0]+1)*self.Tsize,(whiteKing[1]+1)*self.Tsize)
@@ -191,15 +191,15 @@ class GameModel:
                     return [j,i]
         return [0,0]
 
-    def blackKingChecked(self):
+    def blackKingChecks(self):
         kingPos = self.findPiece(12)
         print(kingPos)
-        print("blackKing: ",self.squareAttackers(4,0,True))
+        #print("blackKing: ",self.squareAttackers(4,0,True))
         return self.squareAttackers(4,0,True)
-    def whiteKingChecked(self):
+    def whiteKingChecks(self):
         kingPos = self.findPiece(11)
         print(kingPos)
-        print("whiteKing: ",self.squareAttackers(4,7,False))
+        #print("whiteKing: ",self.squareAttackers(4,7,False))
         return self.squareAttackers(4,7,False)
 
 
@@ -348,6 +348,26 @@ class GameModel:
             return True
         else:
             return False
+    def simulateValidMove(self, x, y, X, Y, isWhite):
+        result = True
+        piece = self.getPieceAt(x,y)
+        targetPiece = self.getPieceAt(X,Y)
+        
+        self.placePieceAt(piece,X,Y) 
+        self.removePieceAt(x,y)
+
+        if (isWhite):
+            if (len(self.whiteKingChecks()) > 0):
+                result = False
+        else:
+            if (len(self.blackKingChecks()) > 0):
+                result = False
+        self.placePieceAt(piece,x,y)
+        self.placePieceAt(targetPiece,X,Y)
+
+        return result
+
+
 class GameController:
     def __init__(self):
         self.playGame = True
