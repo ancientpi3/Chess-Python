@@ -195,13 +195,16 @@ class GameModel:
         kingPos = self.findPiece(12)
         print(kingPos)
         #print("blackKing: ",self.squareAttackers(4,0,True))
-        return self.squareAttackers(4,0,True)
+        return self.squareAttackers(kingPos[0],kingPos[1],True)
     def whiteKingChecks(self):
         kingPos = self.findPiece(11)
         print(kingPos)
         #print("whiteKing: ",self.squareAttackers(4,7,False))
-        return self.squareAttackers(4,7,False)
+        return self.squareAttackers(kingPos[0],kingPos[1],False)
 
+    def printBoard(self):
+        for i in self.boardData:
+            print(i)
 
     def squareAttackers(self,X,Y,attackerIsWhite):
         #kingCoords = findPiece(12)
@@ -340,6 +343,9 @@ class GameModel:
         if (attacker == 11 or attacker == 12):
             if (abs(x - X) > 1 or abs(y-Y) > 1):
                 return False
+
+        if (self.kingSafety(x, y, X, Y) == False):
+            return False
         return True
     def tryMove(self,whitesMove,x,y,X,Y):
         if(self.offerMove(whitesMove,x,y,X,Y)):
@@ -348,13 +354,22 @@ class GameModel:
             return True
         else:
             return False
-    def simulateValidMove(self, x, y, X, Y, isWhite):
+    def kingSafety(self, x, y, X, Y):
         result = True
+        
         piece = self.getPieceAt(x,y)
+        if (piece == 0):
+            return True
+        elif(piece%2 == 0):
+            isWhite = False
+        else:
+            isWhite = True
         targetPiece = self.getPieceAt(X,Y)
         
         self.placePieceAt(piece,X,Y) 
         self.removePieceAt(x,y)
+
+        
 
         if (isWhite):
             if (len(self.whiteKingChecks()) > 0):
@@ -362,6 +377,8 @@ class GameModel:
         else:
             if (len(self.blackKingChecks()) > 0):
                 result = False
+                
+        
         self.placePieceAt(piece,x,y)
         self.placePieceAt(targetPiece,X,Y)
 
@@ -480,7 +497,19 @@ class TestGameModel(unittest.TestCase):
     
     def test_unitTest(self):
         self.GM = GameModel()
-        print(self.GM.squareAttackers(3,1,False))
+        #print(self.GM.squareAttackers(3,1,False))
+    def test_simulateValidMove(self):
+        self.GM = GameModel()
+        self.GM.setUpBoard(self.GM.initBoardData)
+        self.GM.placePieceAt(9,7,3)
+        #self.GM.printBoard()
+        
+        self.assertFalse(self.GM.kingSafety(5, 1, 5, 2))
+        self.assertEquals(self.GM.boardData[2][5],0)
+        self.assertEquals(self.GM.boardData[1][5],2)
+        self.GM.placePieceAt(9,0,4)
+        self.assertFalse(self.GM.kingSafety(3, 1, 3, 2))
+
 
 #unittest.main()
 GC = GameController()
