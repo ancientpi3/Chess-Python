@@ -362,9 +362,13 @@ class GameModel:
             return True
         else:
             return False
-    def blackCheckMate(self):
-        attacks = self.blackKingChecks()
-        kingPos = self.findPiece(12)
+    def checkMate(self, isWhite):
+        if (isWhite):
+            attacks = self.whiteKingChecks()
+            kingPos = self.findPiece(11)
+        else:
+            attacks = self.blackKingChecks()
+            kingPos = self.findPiece(12)
         x, y = kingPos[0], kingPos[1]
         if (len(attacks) == 0):
             return False
@@ -373,7 +377,7 @@ class GameModel:
                 for j in range(-1,2):
                     if (x+i > 7 and x+i < 0 and y+j > 7 and y+j < 0):
                         if self.kingSafety(x,y,x+i,y+j):
-                            print("king can move ",x+i, " " ,y+j )
+                            #print("king can move ",x+i, " " ,y+j )
                             return False
             if (len(attacks) == 1):
                 X, Y = attacks[0][1],attacks[0][2]
@@ -391,7 +395,7 @@ class GameModel:
                     xShift = x+i*xStep
                     yShift = y+i*yStep
  
-                    for potentialSaviour in self.squareAttackers(xShift,yShift,False):
+                    for potentialSaviour in self.squareAttackers(xShift,yShift,isWhite):
                         if self.kingSafety(potentialSaviour[1],potentialSaviour[2],xShift,yShift):
                             print("king has a saviour ",potentialSaviour[0], " ",xShift," ", yShift, " ",potentialSaviour[1] ," ",potentialSaviour[2])
                             return False
@@ -463,7 +467,7 @@ class GameController:
                         if(self.GM.needsPromotionAt != None):
                             self.GM.doPromotionAt(True, self.GV.promotePrompt())
                         self.GV.updateScreen()
-                        if (self.GM.blackCheckMate()):
+                        if (self.GM.checkMate(False)):
                             self.GV.displayGameOver("White")
                             time.sleep(5)
                             self.GM.setUpBoard(self.GM.emptyBoard)
@@ -483,7 +487,12 @@ class GameController:
                         if(self.GM.needsPromotionAt != None):
                             self.GM.doPromotionAt(False, self.GV.promotePrompt())                    
                         self.GV.updateScreen()
-
+                        if (self.GM.checkMate(True)):
+                            self.GV.displayGameOver("Black")
+                            time.sleep(5)
+                            self.GM.setUpBoard(self.GM.emptyBoard)
+                            self.gameMode = 'menu'
+                            return
                         time.sleep(1)
                         self.whitesMove = True
                     self.selected = False
