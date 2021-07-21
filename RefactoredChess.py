@@ -22,6 +22,13 @@ class GameView:
         
         self.boardImage = PhotoImage(file="C:\\Users\\Ethan\\Source\Repos\\Chess-Python\\Graphics\\" + "ChessBoard.png")
         self.promotePiece = 0
+
+    def displayGameOver(self, winner):
+        string = "Check Mate " + winner + " Wins"
+
+        self.win.create_text(200, 200, text=string, font = "Courier 29 bold", width  = 300, fill = "#888888")
+        self.win.create_text(200, 200, text=string, font = "Courier 30 bold", width  = 300, fill = winner)
+        self.win.update()
     def placePiece(self,piece, x, y):
         if (piece>0):
             self.win.create_image(x-25,y-25,image = self.imageList[piece-1])
@@ -60,6 +67,7 @@ class GameView:
     def updateScreen(self): 
         self.win.delete('all')
         self.win.create_image(self.winW/2,self.winH/2, image = self.boardImage)
+        #self.displayGameOver("White")
         self.placeSpecialTiles()
 
         self.updateSideBar()
@@ -148,7 +156,7 @@ class GameModel:
         self.needsPromotionAt = None 
 
     def setUpBoard(self,board):
-        self.boardData = board
+        self.boardData = numpy.copy(board)
     def doPromotionAt(self,whitesMove,piece):
         if (whitesMove):
             self.placePieceAt(piece,self.needsPromotionAt,0)
@@ -224,8 +232,8 @@ class GameModel:
                         ,[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X-1,Y),X-1,Y]
                         ,[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X,Y-1),X,Y-1]
                         ,[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X,Y+1),X,Y+1]]
-        blackPawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1],[self.getPieceAt(X,Y+1),X,Y+1],[self.getPieceAt(X,Y+2),X,Y+2]]
-        whitePawnChecks = [[self.getPieceAt(X-1,Y-1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X,Y-1),X,Y-1],[self.getPieceAt(X,Y-2),X,Y-2]]
+        blackPawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y-1],[self.getPieceAt(X+1,Y-1),X+1,Y-1],[self.getPieceAt(X,Y-1),X,Y-1],[self.getPieceAt(X,Y-2),X,Y-2]]
+        whitePawnChecks = [[self.getPieceAt(X-1,Y+1),X-1,Y+1],[self.getPieceAt(X+1,Y+1),X+1,Y+1],[self.getPieceAt(X,Y+1),X,Y+1],[self.getPieceAt(X,Y+2),X,Y+2]]
         for check in straightChecks:
             if (check[0] == 9 or  check[0] == 7) and attackerIsWhite:
                 attackers.append(check)
@@ -354,6 +362,42 @@ class GameModel:
             return True
         else:
             return False
+    def blackCheckMate(self):
+        attacks = self.blackKingChecks()
+        kingPos = self.findPiece(12)
+        x, y = kingPos[0], kingPos[1]
+        if (len(attacks) == 0):
+            return False
+        if (len(attacks) > 0):
+            for i in range(-1,2):
+                for j in range(-1,2):
+                    if (x+i > 7 and x+i < 0 and y+j > 7 and y+j < 0):
+                        if self.kingSafety(x,y,x+i,y+j):
+                            print("king can move ",x+i, " " ,y+j )
+                            return False
+            if (len(attacks) == 1):
+                X, Y = attacks[0][1],attacks[0][2]
+
+                xStep = 0
+                yStep = 0
+                if (X-x != 0):
+                    xStep = int((X-x)/abs(X-x))
+                    pathLength = abs(X-x)
+                if (Y-y != 0):
+                    yStep = int((Y-y)/abs(Y-y))
+                    pathLength = abs(Y-y)
+
+                for i in range(1,pathLength+1):
+                    xShift = x+i*xStep
+                    yShift = y+i*yStep
+ 
+                    for potentialSaviour in self.squareAttackers(xShift,yShift,False):
+                        if self.kingSafety(potentialSaviour[1],potentialSaviour[2],xShift,yShift):
+                            print("king has a saviour ",potentialSaviour[0], " ",xShift," ", yShift, " ",potentialSaviour[1] ," ",potentialSaviour[2])
+                            return False
+        return True
+        
+
     def kingSafety(self, x, y, X, Y):
         result = True
         
@@ -366,8 +410,9 @@ class GameModel:
             isWhite = True
         targetPiece = self.getPieceAt(X,Y)
         
-        self.placePieceAt(piece,X,Y) 
         self.removePieceAt(x,y)
+        self.placePieceAt(piece,X,Y) 
+        
 
         
 
@@ -418,6 +463,12 @@ class GameController:
                         if(self.GM.needsPromotionAt != None):
                             self.GM.doPromotionAt(True, self.GV.promotePrompt())
                         self.GV.updateScreen()
+                        if (self.GM.blackCheckMate()):
+                            self.GV.displayGameOver("White")
+                            time.sleep(5)
+                            self.GM.setUpBoard(self.GM.emptyBoard)
+                            self.gameMode = 'menu'
+                            return
                         time.sleep(1)
                         self.whitesMove = False
                     self.selected = False
@@ -432,6 +483,7 @@ class GameController:
                         if(self.GM.needsPromotionAt != None):
                             self.GM.doPromotionAt(False, self.GV.promotePrompt())                    
                         self.GV.updateScreen()
+
                         time.sleep(1)
                         self.whitesMove = True
                     self.selected = False
